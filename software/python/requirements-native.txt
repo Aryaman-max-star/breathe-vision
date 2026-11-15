@@ -1,0 +1,8 @@
+# For running OUTSIDE App Lab (board venv for tools/smoke test/plan a', or your Mac):
+opencv-python-headless
+numpy
+scipy
+scikit-learn
+joblib
+psycopg[binary]
+pyyaml

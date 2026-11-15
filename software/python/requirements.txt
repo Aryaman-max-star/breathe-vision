@@ -1,0 +1,8 @@
+# Installed by App Lab inside its Python container.
+# opencv-python-headless and numpy are NOT listed: App Lab's base image already ships its own
+# pinned build of them, and asking for them again makes the whole install fail.
+scipy
+scikit-learn
+joblib
+psycopg[binary]
+pyyaml

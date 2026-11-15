@@ -1,0 +1,5 @@
+# Plan b only (camera on the Jetson Orin Nano, running vision_service.py)
+opencv-python-headless
+numpy
+scipy
+pyyaml

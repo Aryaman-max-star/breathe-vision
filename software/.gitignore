@@ -1,0 +1,4 @@
+# ignore app cache folder
+.cache/
+python/config/.env
+python/config/ca.pem

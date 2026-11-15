@@ -1,0 +1,120 @@
+# =====================================================================
+# BREATHE Vision - station configuration
+# Every length is in millimetres, every temperature in degrees C.
+# Edit this file with any text editor. After saving, restart the app.
+# =====================================================================
+
+pack_id: DEMO-PACK-001        # the battery pack name written to the database
+station_id: bay-01            # the name of this check station
+
+camera:
+  # Where the pictures come from:
+  #   auto      = the Arduino USB Camera on the UNO Q (through the powered hub); if App Lab can't open it,
+  #               use vision_service.py (plan a' on the UNO Q, or plan b on the Jetson)   <-- use this
+  #   v4l2      = only the webcam plugged into this computer
+  #   service   = only vision_service.py (see service_urls)
+  #   synthetic = no camera at all, computer-drawn test images (for testing the software)
+  source: auto
+  device: auto                # auto = find the camera by itself; or write e.g. /dev/video2
+  model: Arduino USB Camera (TPX00246, Sony IMX376)
+  width: 1920                 # 1080p: 0.6 mm = ~3.9 px at 20 cm (plenty). Less power, heat and USB load than 4K,
+  height: 1080                #   so the camera is far less likely to drop out. 4K (3840x2160, frames 15) is optional.
+  fps: 30
+  fourcc: MJPG
+  hfov_deg: 61.3              # measured on the rig: the 1080p view is narrower than the datasheet
+  channel: red                # measure in the RED channel: orange screen bright, dark cells dark (gray/green/blue also possible)
+  ring_light: "off"           # on | off | leave. Off by default: less power drawn through the hub (fewer drop-outs).
+                              #   Try "on" only if the screen is too dark (GUIDE Part 10.3).
+  focus_absolute: 200         # overwritten by the auto-focus sweep (calibration step)
+  exposure_100us: 100         # 100 x 100 us = 10 ms (no flicker on 50 Hz mains). Use 200 if image is too dark.
+  gain: 0
+  wb_k: 4500
+  power_line_hz: 50           # Finland / Europe = 50
+  sharpness: 0
+  service_urls:               # where vision_service.py can be reached (plan a' / plan b)
+    - http://127.0.0.1:8765
+    - http://172.17.0.1:8765
+    - http://host.docker.internal:8765
+    # plan b only: add your Jetson here, e.g.  - http://192.168.1.60:8765
+geometry:
+  lens_xyz_mm: [90.0, -52.0, 49.5]  # lens FRONT position: x across (90 = centre line), y depth, z height.
+                                    # Recommended: y = -52 (lens 5 cm in front of the foundation's front edge,
+                                    # so the cells' back edge is at the camera's 20 cm focus limit), z = 49-51.
+                                    # z must NOT be 44-47.7 (cell-top height). Rough guesses are fine:
+                                    # calibration fits the real position, sideways offset and turn.
+  cell:
+    width_x: 18.0
+    depth_y: 30.0
+    normal_h: 42.0
+    fault_h: 42.6
+    bottom_z: 3.6
+    front_y: 119.4
+  terminal: {radius: 2.2, height: 2.5, y_from_front: [7.0, 23.0]}
+  slot_left_x: [52.4, 71.6, 90.8, 110.0]   # LEFT edge x of each cell (slot 1..4), from the foundation drawing
+  holder: {x0: 50.8, x1: 129.2, front_y: 118.0, back_y: 150.8, top_z: 24.4}
+  screen: {x0: 25.0, x1: 155.0, y: 153.0, z0: 2.4, z1: 76.0}   # the orange printed screen (front face at y = 153)
+  screen_y: 153.0
+  fiducials_xz: []            # no stuck-on squares: the screen's own left/right/top edges are the camera-moved reference
+  fiducial_size_mm: 5.0
+
+vision:
+  frames: 30                  # frames averaged per scan (30 at 1080p, 15 at 4K)
+  calib_frames: 60            # frames averaged for the geometry fit
+  band_px: 30                 # search +/- this many pixel rows around the baseline edge (30 px at 1080p = ~4.5 mm)
+  edge_margin_mm: 1.5         # stay away from rounded cell corners
+  terminal_margin_mm: 0.8
+  column_guard_px: 3          # columns kept clear of terminals/corners (camera at 20 cm is in focus)
+  min_conf: 0.25
+  max_fit_median_px: 4.0
+
+thresholds:
+  alarm_mm_min: 0.25
+  watch_mm_min: 0.12
+  k_alarm_sigma: 4
+  k_watch_sigma: 3
+  slope_deg: 1.5
+  lr_mm_min: 0.15
+  fiducial_px: 1.0             # (only for optional stuck-on squares)
+  motion_max_deg: 0.85         # camera moves up to this angle (~3 mm slide) are corrected automatically
+  motion_max_px: 0             # 0 = use motion_max_deg
+  motion_max_roll_deg: 0.7
+  motion_max_scale: 0.015
+  roll_deg: 0.05
+  sky_dark_frac: 0.03
+  sky_change_frac: 0.6
+  uniform_spread_mm: 0.12
+
+placement:                    # "Camera placement" panel, before calibration (how close to the optimal pose is "OK")
+  tol_distance_mm: 10
+  tol_sideways_mm: 10
+  tol_turn_deg: 2.0
+  tol_tilt_deg: 1.5
+  tol_roll_deg: 1.0
+
+thermal:
+  sensor_location: "pocket beside the battery holder"   # Modulino Thermo now sits right next to the module
+  tau_filter_s: 10
+  tau_module_s: 300           # ASSUMED (no IR thermometer). The sensor is next to the module now, so the air value already
+                              #   follows the module closely; the "surface" value stays labelled as a model estimate.
+  dT_event_c: 5.0
+  dTdt_event_c_per_min: 1.0
+  alpha_pla_per_k: 68.0e-6
+  cell_length_mm: 42.0
+  dew_margin_c: 3.0
+  ok_band_c: [15.0, 35.0]
+
+model:
+  if_margin: -0.08            # anomaly if the Isolation Forest score is below this
+  min_train: 15
+
+database:
+  enabled: true               # needs AIVEN_PG_URI in python/config/.env
+  sync_every_s: 5
+
+synthetic:                    # only used when camera.source = synthetic
+  heights: [42.0, 42.0, 42.0, 42.0]
+  noise: 3.0
+  blur_px: 2.0                # slight softness (at 20 cm the real camera should be close to sharp)
+  reseat_sigma_mm: 0.03
+  true_camera_offset: {cx: 8.0, cy: -15.0, f_scale: 0.97, Zc: -1.0, Yc: -10.0, Xc: 6.0, yaw: -0.03, roll: 0.004}
+  background: 70.0            # what is seen around the screen (the room)

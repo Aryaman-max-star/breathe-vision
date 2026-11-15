@@ -1,0 +1,118 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>BREATHE Vision</title>
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+<header>
+  <div class="brand">BREATHE <span>Vision</span></div>
+  <div class="meta"><span id="pack"></span> · <span id="mode" class="pill">…</span> · <span id="dbpill" class="pill">DB</span></div>
+</header>
+
+<main>
+  <section id="verdict" class="card verdict sev-INFO">
+    <div class="vtop"><div id="vname">WAITING</div><button id="scanBtn" class="big">SCAN</button></div>
+    <div id="vreason">Press SCAN (or short-press the knob).</div>
+    <div id="vaction" class="action"></div>
+    <div id="vmeta" class="small"></div>
+  </section>
+
+  <section class="card">
+    <h2>Cells <span class="small" id="thr"></span></h2>
+    <div id="cells" class="cells"></div>
+  </section>
+
+  <section class="card">
+    <h2>Live view <span class="small">(blue = baseline edge, green = last measured edge)</span></h2>
+    <img id="live" alt="camera view">
+    <div id="ctrls" class="small"></div>
+    <div id="liveerr" class="small"></div>
+  </section>
+
+  <section class="card" id="placecard">
+    <h2>Camera placement <span class="small">(the camera stands loose: use this to put it right)</span></h2>
+    <div class="row"><button id="placeBtn">Start live check</button>
+      <button data-cal="reanchor" class="ghost" title="All 4 NORMAL cells in place. About 2 minutes.">Re-anchor here</button></div>
+    <div id="placeHead" class="placehead">Press "Start live check", then move the camera while you watch this panel.</div>
+    <ul id="placeSteps" class="steps2"></ul>
+    <div id="placeNum" class="small"></div>
+    <div id="placeHint" class="small"></div>
+    <div id="placeNote" class="small"></div>
+    <button id="fovBtn" hidden title="Only if the camera really stands where station.yaml says (about 5 cm in front of the foundation, on the centre line)">Measure this camera's field of view</button>
+    <div id="placePicWrap" hidden><div class="small">What the guide sees: <b style="color:#c0c">pink</b> = screen edges it found
+      (should sit on the orange screen's left, right and top edges), <b style="color:#0a0">green</b> = cell tops,
+      <b style="color:#cb0">yellow</b> = where it looks for the screen.</div><img id="placePic" alt="placement view"></div>
+  </section>
+
+  <section class="card">
+    <h2>Temperature <span class="small">(air is measured; surface is a MODEL estimate)</span></h2>
+    <div class="thermo" id="thermo"></div>
+    <canvas id="chart" width="800" height="220"></canvas>
+    <div class="legend"><span class="l1">air</span><span class="l2">est. surface (model)</span><span class="l3">dew point</span><span class="l4">15–35 °C band</span></div>
+    <button id="thReset">Reset temperature baseline</button>
+  </section>
+
+  <section class="card">
+    <h2>Calibration <span class="small">(step by step: the knob's short press = the big button)</span></h2>
+    <div id="wizSteps" class="wizsteps"></div>
+    <div id="wizTitle" class="wiztitle">Calibration</div>
+    <div id="wizProg" class="wizprog" hidden><div></div></div>
+    <div id="wizSlots" class="wizslots" hidden></div>
+    <ol id="wizDo" class="wizdo"></ol>
+    <div id="wizWork" class="wizwork" hidden></div>
+    <div id="wizRes" class="wizres" hidden></div>
+    <div class="row">
+      <button id="wizBtn" class="big">Start calibration</button>
+      <button id="wizSkip" class="ghost" hidden>Skip</button>
+      <button id="wizCancel" class="ghost" hidden>Cancel</button>
+    </div>
+    <details class="adv"><summary>Advanced (individual calibration steps)</summary>
+    <ol class="steps">
+      <li><b>Focus.</b> <button data-cal="focus">Run focus sweep</button></li>
+      <li><b>Fit geometry.</b> <button data-cal="geometry">Fit geometry</button></li>
+      <li><b>Baseline.</b> <button data-cal="baseline_add">Add baseline scan</button> <span id="bn" class="pill">0</span>
+        <button data-cal="baseline_reset" class="ghost">Clear</button></li>
+      <li><b>Finish baseline + train AI.</b> <button data-cal="baseline_finish">Finish</button></li>
+      <li><b>Scale.</b> <span class="row"><button data-cal="scale1">Fault in slot 1</button><button data-cal="scale2">Fault in slot 2</button>
+        <button data-cal="scale3">Fault in slot 3</button><button data-cal="scale4">Fault in slot 4</button></span></li>
+    </ol>
+    <div id="calstat" class="small"></div>
+    </details>
+  </section>
+
+  <section class="card" id="simcard" hidden>
+    <h2>Simulator <span class="small">(camera.source = synthetic)</span></h2>
+    <div class="row">
+      <button data-sim="normal">All normal</button>
+      <button data-sim="fault1">Fault → 1</button><button data-sim="fault2">Fault → 2</button>
+      <button data-sim="fault3">Fault → 3</button><button data-sim="fault4">Fault → 4</button>
+      <button data-sim="reseat">Reseat</button>
+      <button data-sim="missing2">Remove cell 2</button>
+      <button data-sim="hand">Hand in view</button>
+      <button data-sim="nudge">Nudge camera</button>
+      <button data-sim="bump">Bump camera</button>
+      <button data-sim="far_off">Badly placed camera</button>
+      <button data-sim="home">Camera back home</button>
+      <button data-sim="heat_on">Breathe on sensor</button><button data-sim="heat_off">Stop breathing</button>
+    </div>
+  </section>
+
+  <section class="card">
+    <h2>Database (Aiven PostgreSQL)</h2>
+    <div id="dbstat" class="small"></div>
+    <button id="aivenBtn">Show data from Aiven</button>
+    <div id="aiven" class="small"></div>
+  </section>
+
+  <section class="card">
+    <h2>History</h2>
+    <ul id="hist" class="hist"></ul>
+  </section>
+</main>
+<footer id="msg">…</footer>
+<script src="app.js"></script>
+</body>
+</html>

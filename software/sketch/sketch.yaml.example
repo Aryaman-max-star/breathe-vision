@@ -1,0 +1,13 @@
+# REFERENCE ONLY. Keep the sketch.yaml that App Lab created for you, and add the
+# Arduino_Modulino library through App Lab's library button (GUIDE.md part 6.4).
+# After that, App Lab's sketch.yaml will contain a line similar to the last one here.
+profiles:
+  default:
+    fqbn: arduino:zephyr:unoq
+    platforms:
+      - platform: arduino:zephyr
+    libraries:
+      - Arduino_RouterBridge
+      - Arduino_LED_Matrix
+      - Arduino_Modulino
+default_profile: default
